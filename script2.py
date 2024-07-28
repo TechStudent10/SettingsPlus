@@ -103,11 +103,11 @@ str_input2 = """21:47:34 INFO  [Main] [Settings+]: 0026
 21:47:34 INFO  [Main] [Settings+]: 0174
 21:47:34 INFO  [Main] [Settings+]: 0015
 21:47:34 INFO  [Main] [Settings+]: 0153
-21:47:34 INFO  [Main] [Settings+]: 0026
+21:47:34 INFO  [Main] [Settings+]: 0060
 21:47:34 INFO  [Main] [Settings+]: 0061
 21:47:34 INFO  [Main] [Settings+]: 0062
 21:47:34 INFO  [Main] [Settings+]: 0096
-21:47:34 INFO  [Main] [Settings+]: 0010
+21:47:34 INFO  [Main] [Settings+]: 0019
 21:47:34 INFO  [Main] [Settings+]: 0022
 21:47:34 INFO  [Main] [Settings+]: 0033
 21:47:34 INFO  [Main] [Settings+]: 0018
@@ -135,7 +135,7 @@ str_input2 = """21:47:34 INFO  [Main] [Settings+]: 0026
 21:47:34 INFO  [Main] [Settings+]: 0136
 21:47:34 INFO  [Main] [Settings+]: 0042
 21:47:34 INFO  [Main] [Settings+]: 0056
-21:47:34 INFO  [Main] [Settings+]: 0126
+21:47:34 INFO  [Main] [Settings+]: 0127
 21:47:34 INFO  [Main] [Settings+]: 0093
 21:47:34 INFO  [Main] [Settings+]: 0066
 21:47:34 INFO  [Main] [Settings+]: 0014

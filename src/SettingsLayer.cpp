@@ -215,6 +215,7 @@ std::string descForGV(std::string gv) {
         {"0109", "Toggles the extra info/debug label in game"},
         {"0113", "Flips the platformer controls"},
         {"0153", "Whether the player should explode on death"},
+        {"0019", "Loads audio into memory. Used to be available in 2.1, not available in base 2.2"},
         {"0022", "Whether the game should use higher audio quality"},
         {"0075", "(Parental Controls) Disables comments <cy>(known to be buggy)</c>"},
         {"0076", "(Parental Controls) Disables account posts"},
@@ -404,13 +405,13 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
             SETTING("Flip Pause Button", "0015")
             SEPARATOR("Icon Options")
             SETTING("Explode Player on Death", "0153")
-            SETTING("Default Mini Icon", "0026")
+            SETTING("Default Mini Icon", "0060")
             SETTING("Switch Spider Teleport Color", "0061")
             SETTING("Switch Dash Fire Color", "0062")
             SETTING("Switch Wave Trail Color", "0096")
             break;
         case Audio:
-            SETTING("Load Songs into Memory", "0010")
+            SETTING("Load Songs into Memory", "0019")
             SETTING("Higher Audio Quality", "0022")
             SETTING("Change Song Path", "0033")
             SETTING("No Song Limit", "0018")
@@ -449,7 +450,7 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
             SEPARATOR("Improvements (may cause issues on low end devices)")
             SETTING("Increase Max Levels", "0042")
             SETTING("Disable Object Alert", "0056")
-            SETTING("Save Gauntlet Levels", "0126")
+            SETTING("Save Gauntlet Levels", "0127")
             SETTING("Increase Local Levels Per Page", "0093")
             SETTING("High Capacity Mode", "0066")
             SEPARATOR("Disable Toggles")

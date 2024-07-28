@@ -9,7 +9,7 @@ Edit about.md to change this
     - gv_0026 Auto Retry
     - gv_0028 Disable Thumbstick
     - gv_0040 Show Percent
-    - gv_0026 Default Mini Icon
+    - gv_0060 Default Mini Icon
     - gv_0052 Fast Reset
     - gv_0074 Restart Button
     - gv_0109 Extra Info (?)
@@ -41,14 +41,14 @@ Edit about.md to change this
     - gv_0101 Force Smooth Fix
     - gv_0102 Smooth Fix in the Editor
     - gv_0108 Auto LDM
-    - gv_0126 Save Gauntlet Levels
+    - gv_0127 Save Gauntlet Levels
     - gv_0128 Lock Cursor In-Game
     - gv_0136 Extra LDM
     - gv_0140 Disable Orb Scale
     - gv_0141 Disable Trigger Orb Scale
     - gv_0155 Disable Shader Anti-Aliasing
 - Audio
-    - gv_0010 Load Songs into Memory
+    - gv_0019 Load Songs into Memory
     - gv_0022 Higher Audio Quality
     - gv_0033 Change Song Path
     - gv_0018 No Song Limit
