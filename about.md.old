@@ -1,0 +1,74 @@
+# Template Mod
+
+Edit about.md to change this
+
+- Gameplay
+    - gv_0010 Flip 2P controls
+    - gv_0011 Always Limit Controls
+    - gv_0024 Show Cursor In-Game
+    - gv_0026 Auto Retry
+    - gv_0028 Disable Thumbstick
+    - gv_0040 Show Percent
+    - gv_0026 Default Mini Icon
+    - gv_0052 Fast Reset
+    - gv_0074 Restart Button
+    - gv_0109 Extra Info (?)
+    - gv_0113 Flip Plat. Controls
+    - gv_0126 Decimal Percent
+    - gv_0130 Orb Labels
+    - gv_0134 Hide Attempts
+    - gv_0153 Explode Player on Death
+    - gv_0163 Quick Keys
+    - gv_0167 Confirm Exit
+    - gv_0174 Hide Playtest Text
+- Practice
+    - gv_0027 Auto Checkpoints
+    - gv_0067 High Start Position Accuracy
+    - gv_0068 Quick Checkpoint Mode
+    - gv_0071 Hide Practice Button
+    - gv_0100 Practice Death Effect
+    - gv_0135 Hide Attempts in Practice
+- Perf
+    - gv_0014 Disable Explosion Shake
+    - gv_0023 Smooth Fix
+    - gv_0042 Increase Max Levels
+    - gv_0056 Disable Object Alert
+    - gv_0065 Move Optimization
+    - gv_0066 High Capacity Mode
+    - gv_0081 Disable Shake Effect
+    - gv_0082 Disable High Object Alert
+    - gv_0093 Increase Local Levels Per Page
+    - gv_0101 Force Smooth Fix
+    - gv_0102 Smooth Fix in the Editor
+    - gv_0108 Auto LDM
+    - gv_0126 Save Gauntlet Levels
+    - gv_0128 Lock Cursor In-Game
+    - gv_0136 Extra LDM
+    - gv_0140 Disable Orb Scale
+    - gv_0141 Disable Trigger Orb Scale
+    - gv_0155 Disable Shader Anti-Aliasing
+- Audio
+    - gv_0010 Load Songs into Memory
+    - gv_0022 Higher Audio Quality
+    - gv_0033 Change Song Path
+    - gv_0018 No Song Limit
+    - gv_0125 Normal Music in Editor
+    - gv_0142 Reduce Audio Quality
+    - gv_0159 Audio Fix 01
+- Misc
+    - gv_0095 Do Not...
+    - gv_0015 Flip Pause Button
+    - gv_0061 Switch Spider Teleport Color
+    - gv_0062 Switch Dash Fire Color
+    - gv_0096 Switch Wave Trail Color
+    - gv_0072 Disable Gravity Effect
+    - gv_0073 New Completed Filter
+    - gv_0075 Disable Comments
+    - gv_0076 Disable Account Comments
+    - gv_0077 Featured Levels Only
+    - gv_0083 Disable Song Alert
+    - gv_0084 Manual Level Order
+    - gv_0090 Autoload Comments
+    - gv_0094 More Comments Mode
+    - gv_0099 Show Leaderboard Percent
+    - gv_0168 Fast Menu
