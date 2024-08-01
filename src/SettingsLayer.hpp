@@ -51,8 +51,9 @@ public:
 class SettingsLayer : public geode::Popup<> {
 protected:
     CCArray* m_listItems;
-    ListView* m_listView;
+    Border* m_border;
     CCMenuItemSpriteExtra* m_currentBtn;
+    CCMenuItemSpriteExtra* m_searchClearBtn;
 
     bool setup() override;
     void createSettingCheckbox(
@@ -62,7 +63,7 @@ protected:
     void switchPage(SettingPage, bool, CCMenuItemSpriteExtra*);
     void onCategoryBtn(CCObject*);
     void onSearchBtn(CCObject*);
-
+    void onClearSearch(CCObject*);
     void refreshList();
 public:
     static SettingsLayer* create();
