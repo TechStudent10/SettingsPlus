@@ -416,7 +416,9 @@ void SettingsLayer::onCategoryBtn(CCObject* sender) {
 
 void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpriteExtra* btn) {
     m_listItems = CCArray::create();
-
+    if(m_searchClearBtn){
+        m_searchClearBtn->setVisible(false);
+    }
     #define SETTING(name, gv) m_listItems->addObject( \
         SettingCell::create(name, gv) \
     );
