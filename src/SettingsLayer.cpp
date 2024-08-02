@@ -2,7 +2,7 @@
 
 SearchPopup* SearchPopup::create(SearchCB callback) {
     auto ret = new SearchPopup();
-    if (ret && ret->initAnchored(210.f, 180.f, callback)) {
+    if (ret && ret->initAnchored(210.f, 130.f, callback)) {
         ret->autorelease();
         return ret;
     }
@@ -16,7 +16,7 @@ bool SearchPopup::setup(SearchCB callback) {
     this->setTitle("Search");
 
     m_input = TextInput::create(150.f, "Query here");
-    m_mainLayer->addChildAtPosition(m_input, Anchor::Center);
+    m_mainLayer->addChildAtPosition(m_input, Anchor::Center, {0, 7.5f});
 
     auto btn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Search"), this, menu_selector(SearchPopup::onSearch)
@@ -24,7 +24,7 @@ bool SearchPopup::setup(SearchCB callback) {
     auto menu = CCMenu::create();
     menu->addChild(btn);
 
-    m_mainLayer->addChildAtPosition(menu, Anchor::Bottom);
+    m_mainLayer->addChildAtPosition(menu, Anchor::Bottom, {0, 25});
 
     return true;
 }
@@ -72,14 +72,14 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
             m_toggler = CCMenuItemToggler::createWithStandardSprites(
                 this,
                 menu_selector(SettingCell::onCheckboxToggled),
-                1.f
+                0.75f
             );
             m_toggler->toggle(
                 GameManager::get()->getGameVariable(gv.c_str())
             );
 
             spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-            spr->setScale(0.75f);
+            spr->setScale(0.65f);
             btn = CCMenuItemSpriteExtra::create(
                 spr, this, menu_selector(SettingCell::onInfo)
             );
@@ -90,16 +90,16 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
             break;
         case FMODDebug:
             spr = ButtonSprite::create("Debug", "goldFont.fnt", "GJ_button_05.png");
-            spr->setScale(0.7f);
+            spr->setScale(0.5f);
             btn = CCMenuItemSpriteExtra::create(
                 spr, this, menu_selector(SettingCell::onFMODDebug)
             );
-            btn->setPositionX(-20.f);
+            btn->setPositionX(-10.f);
             menu->addChild(btn);
             break;
         case SongSelect:
             spr = CCSprite::createWithSpriteFrameName("GJ_savedSongsBtn_001.png");
-            spr->setScale(0.7f);
+            spr->setScale(0.4f);
             menu->addChild(CCMenuItemSpriteExtra::create(
                 spr, this, menu_selector(SettingCell::onSongSelect)
             ));
@@ -111,9 +111,19 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
                 input->setString(std::to_string(fmodEngine->m_musicOffset));
             }
             input->setCallback([this, fmodEngine](std::string offset) {
-                fmodEngine->m_musicOffset = std::stoi(offset);
+                fmodEngine->m_musicOffset = 0;
+
+                std::stringstream ss;
+                ss << offset;
+                int num = 0;
+                ss >> num;
+
+                if (ss.good()) {
+                    fmodEngine->m_musicOffset = std::stoi(offset);
+                }
             });
-            input->setPositionX(-35.f);
+            input->setPositionX(-25.f);
+            input->setScale(0.75f);
             menu->addChild(input);
             break;
         case Separator:
@@ -122,7 +132,7 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
                 name.c_str(),
                 "goldFont.fnt"
             );
-            text->limitLabelWidth(300.f, 1.f, 0.1);
+            text->limitLabelWidth(300.f, 0.75f, 0.1);
             this->addChildAtPosition(text, Anchor::Center);
             break;
     }
@@ -134,7 +144,7 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
 
     this->setContentSize({
         365.f,
-        50.f
+        30.f
     });
     
     return true;
@@ -256,8 +266,9 @@ CCSprite* createCategoryBtnSprite(std::string name, bool isSelected = false) {
     );
     auto text = CCLabelBMFont::create(name.c_str(), "bigFont.fnt");
     text->limitLabelWidth(75.f, 0.7f, 0.1f);
-    sprite->setScale(0.8f);
+    sprite->setScale(1.f);
     sprite->addChildAtPosition(text, Anchor::Center);
+    text->setPositionY(text->getPositionY() + 1.5f);
     return sprite;
 }
 
@@ -296,7 +307,7 @@ bool SettingsLayer::setup() {
 
     CATEGORY_BTN("Gameplay", SettingPage::Gameplay)
     CATEGORY_BTN("Practice", SettingPage::Practice)
-    CATEGORY_BTN("Perf.", SettingPage::Performance)
+    CATEGORY_BTN("Performance", SettingPage::Performance)
     CATEGORY_BTN("Audio", SettingPage::Audio)
     CATEGORY_BTN("Misc", SettingPage::Misc)
     CATEGORY_BTN("Keys", SettingPage::Keybinds)
@@ -323,11 +334,38 @@ bool SettingsLayer::setup() {
     auto searchBtn = CCMenuItemSpriteExtra::create(
         searchBtnSpr, this, menu_selector(SettingsLayer::onSearchBtn)
     );
+
+    auto searchBtnOffSpr = CCSprite::createWithSpriteFrameName("gj_findBtnOff_001.png");
+    m_searchClearBtn = CCMenuItemSpriteExtra::create(
+        searchBtnOffSpr, this, menu_selector(SettingsLayer::onClearSearch)
+    );
+
+    m_searchClearBtn->setVisible(false);
+
     auto searchMenu = CCMenu::create();
+    searchMenu->setLayout(
+        RowLayout::create()
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAxisReverse(true)
+    );
+    searchMenu->setContentSize({70, 35});
+    searchMenu->setAnchorPoint({1, 0.5});
     searchMenu->addChild(searchBtn);
-    m_mainLayer->addChildAtPosition(searchMenu, Anchor::TopRight);
+    searchMenu->addChild(m_searchClearBtn);
+    searchMenu->updateLayout();
+    m_mainLayer->addChildAtPosition(searchMenu, Anchor::TopRight, {15, 0});
 
     return true;
+}
+
+void SettingsLayer::onClearSearch(CCObject* sender) {
+    
+    auto page = static_cast<SettingPage>(static_cast<CCInteger*>(
+            m_currentBtn->getUserObject()
+        )->getValue());
+
+    switchPage(page, false, m_currentBtn);
+    m_searchClearBtn->setVisible(false);
 }
 
 void SettingsLayer::onSearchBtn(CCObject* sender) {
@@ -345,7 +383,12 @@ void SettingsLayer::onSearchBtn(CCObject* sender) {
 
         switchPage(page, false, m_currentBtn);
 
-        if (query == "") return;
+        if (query == "") {
+            m_searchClearBtn->setVisible(false);
+            return;
+        }
+
+        m_searchClearBtn->setVisible(true);
 
         for (auto cell : CCArrayExt<SettingCell*>(m_listItems)) {
             if (toLower(cell->m_name).find(toLower(query)) != std::string::npos) {
@@ -357,7 +400,7 @@ void SettingsLayer::onSearchBtn(CCObject* sender) {
         }
 
         m_listItems = newList;
-        m_listView->removeFromParent();
+        m_border->removeFromParent();
         this->refreshList();
     })->show();
 }
@@ -373,7 +416,9 @@ void SettingsLayer::onCategoryBtn(CCObject* sender) {
 
 void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpriteExtra* btn) {
     m_listItems = CCArray::create();
-
+    if(m_searchClearBtn){
+        m_searchClearBtn->setVisible(false);
+    }
     #define SETTING(name, gv) m_listItems->addObject( \
         SettingCell::create(name, gv) \
     );
@@ -447,7 +492,7 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
             SEPARATOR("LDM")
             SETTING("Auto LDM", "0108")
             SETTING("Extra LDM", "0136")
-            SEPARATOR("Improvements (may cause issues on low end devices)")
+            SEPARATOR("Enhancements")
             SETTING("Increase Max Levels", "0042")
             SETTING("Disable Object Alert", "0056")
             SETTING("Save Gauntlet Levels", "0127")
@@ -486,7 +531,7 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
             break;
     }
     if (!isFirstRun) {
-        m_listView->removeFromParent();
+        m_border->removeFromParent();
     }
     
     this->refreshList();
@@ -503,15 +548,24 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
 }
 
 void SettingsLayer::refreshList() {
-    m_listView = ListView::create(m_listItems, 50.f, 365.f, 245.f);
-    m_listView->ignoreAnchorPointForPosition(false);
+    ListView* listView = ListView::create(m_listItems, 30.f, 365.f, 245.f);
+
+    m_border = Border::create(listView, {0, 0, 0, 75}, {365.f, 245.f});
+    if(CCScale9Sprite* borderSprite = typeinfo_cast<CCScale9Sprite*>(m_border->getChildByID("geode.loader/border_sprite"))) {
+        float scaleFactor = 1.5f;
+        borderSprite->setContentSize(CCSize{borderSprite->getContentSize().width, borderSprite->getContentSize().height + 1} / scaleFactor);
+        borderSprite->setScale(scaleFactor);
+        borderSprite->setPositionY(-0.5);
+    }
+    m_border->ignoreAnchorPointForPosition(false);
+    
     for (auto cell : CCArrayExt<CCNode*>(m_listItems)) {
         cell->setContentSize({
             365.f,
-            50.f
+            30.f
         });
         cell->updateLayout();
     }
     
-    m_mainLayer->addChildAtPosition(m_listView, Anchor::Right, ccp(-195.f, 0.f));
+    m_mainLayer->addChildAtPosition(m_border, Anchor::Right, ccp(-195.f, 0.f));
 }
