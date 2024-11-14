@@ -1,17 +1,16 @@
 {
-	"geode": "3.2.0",
+	"geode": "4.0.0-alpha.1",
 	"gd": {
-		"win": "2.206",
-		"android": "2.206",
-		"mac": "2.206",
-		"ios": "2.206"
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
 	},
 	"id": "techstudent10.settings_plus",
 	"name": "Settings+",
-	"version": "v1.1.0",
+	"version": "v1.2.0",
 	"developer": "TechStudent10",
 	"description": "A better Settings experience",
-	"repository": "https://github.com/TechStudent10/SettingsPlus",
 	"issues": {
 		"info": "Please report issues and bugs to the Issues page on GitHub",
 		"url": "https://github.com/TechStudent10/SettingsPlus/issues"
@@ -20,5 +19,8 @@
 		"enhancement",
 		"interface",
 		"utility"
-	]
+	],
+	"links": {
+		"source": "https://github.com/TechStudent10/SettingsPlus"
+	}
 }
