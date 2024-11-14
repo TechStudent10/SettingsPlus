@@ -158,8 +158,9 @@ void SettingCell::onFMODDebug(CCObject* sender) {
 void SettingCell::onSongSelect(CCObject* sender) {
     auto mol = MoreOptionsLayer::create();
     mol->onSongBrowser(sender);
-    // auto browser = GJSongBrowser::create();
-    // browser->showLayer(true);
+    if (auto songBrowser = CCScene::get()->getChildByType<GJSongBrowser>(0)) {
+        if (songBrowser->m_delegate == mol) songBrowser->m_delegate = nullptr;
+    }
 }
 
 void SettingCell::onCheckboxToggled(CCObject* sender) {
