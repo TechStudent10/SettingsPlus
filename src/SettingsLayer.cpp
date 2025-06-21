@@ -12,19 +12,23 @@ SearchPopup* SearchPopup::create(SearchCB callback) {
 
 bool SearchPopup::setup(SearchCB callback) {
     m_callback = callback;
-
     this->setTitle("Search");
+    this->setID("SearchPopup"_spr);
+    this->m_bgSprite->setID("background");
+    this->m_title->setID("title");
+    this->m_buttonMenu->setID("button-menu");
+    this->m_mainLayer->setID("main-layer");
+    this->m_closeBtn->setID("close-button");
 
     m_input = TextInput::create(150.f, "Query here");
+    m_input->setID("search-input");
     m_mainLayer->addChildAtPosition(m_input, Anchor::Center, {0, 7.5f});
 
     auto btn = CCMenuItemSpriteExtra::create(
         ButtonSprite::create("Search"), this, menu_selector(SearchPopup::onSearch)
     );
-    auto menu = CCMenu::create();
-    menu->addChild(btn);
-
-    m_mainLayer->addChildAtPosition(menu, Anchor::Bottom, {0, 25});
+    btn->setID("search-button");
+    m_buttonMenu->addChildAtPosition(btn, Anchor::Center, {0, 25});
 
     return true;
 }
@@ -47,6 +51,7 @@ SettingCell* SettingCell::create(std::string name, std::string gv, SettingCellTy
 }
 
 bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
+    setID(name);
     m_name = name;
     m_gameVariable = gv;
     m_type = type;
@@ -54,10 +59,12 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
     auto nameLabel = CCLabelBMFont::create(
         name.c_str(), "bigFont.fnt"
     );
+    nameLabel->setID("name-label");
     // nameLabel->setScale(0.9f);
     nameLabel->limitLabelWidth(15.f, 0.9f, 0.5f);
     
     auto menu = CCMenu::create();
+    menu->setID("button-menu");
 
     // needed so that the switch statement isn't fussy about variables
     CCSprite* spr;
@@ -65,7 +72,7 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
     TextInput* input;
     CCLabelBMFont* text;
 
-    auto fmodEngine = FMODAudioEngine::sharedEngine();
+    auto gameManager = GameManager::sharedState();
 
     switch (type) {
         case Default:
@@ -74,6 +81,7 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
                 menu_selector(SettingCell::onCheckboxToggled),
                 0.75f
             );
+            m_toggler->setID("toggler");
             m_toggler->toggle(
                 GameManager::get()->getGameVariable(gv.c_str())
             );
@@ -83,6 +91,7 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
             btn = CCMenuItemSpriteExtra::create(
                 spr, this, menu_selector(SettingCell::onInfo)
             );
+            btn->setID("info-button");
             btn->setPositionX(-35.f);
             
             menu->addChild(btn);
@@ -94,33 +103,34 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
             btn = CCMenuItemSpriteExtra::create(
                 spr, this, menu_selector(SettingCell::onFMODDebug)
             );
+            btn->setID("button");
             btn->setPositionX(-10.f);
             menu->addChild(btn);
             break;
         case SongSelect:
             spr = CCSprite::createWithSpriteFrameName("GJ_savedSongsBtn_001.png");
             spr->setScale(0.4f);
-            menu->addChild(CCMenuItemSpriteExtra::create(
+            btn = CCMenuItemSpriteExtra::create(
                 spr, this, menu_selector(SettingCell::onSongSelect)
-            ));
+            );
+            btn->setID("button");
+            menu->addChild(btn);
             break;
         case SongOffset:
             input = TextInput::create(100.f, "Offset");
-            input->getInputNode()->setAllowedChars("0123456789");
-            if (fmodEngine->m_musicOffset != 0) {
-                input->setString(std::to_string(fmodEngine->m_musicOffset));
+            input->setCommonFilter(CommonFilter::Uint);
+            input->setMaxCharCount(4);
+            input->setID("input");
+
+            if (gameManager->m_timeOffset != 0) {
+                input->setString(fmt::format("{}", gameManager->m_timeOffset));
             }
-            input->setCallback([this, fmodEngine](std::string offset) {
-                fmodEngine->m_musicOffset = 0;
-
-                std::stringstream ss;
-                ss << offset;
-                int num = 0;
-                ss >> num;
-
-                if (ss.good()) {
-                    fmodEngine->m_musicOffset = std::stoi(offset);
+            input->setCallback([this, gameManager](std::string offset) {
+                auto res = geode::utils::numFromString<int>(offset);
+                if(res.isErr()) {
+                    log::info("{}", res.unwrapErr());
                 }
+                gameManager->m_timeOffset = geode::utils::numFromString<int>(offset).unwrapOrDefault();
             });
             input->setPositionX(-25.f);
             input->setScale(0.75f);
@@ -132,6 +142,7 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
                 name.c_str(),
                 "goldFont.fnt"
             );
+            text->setID("label");
             text->limitLabelWidth(300.f, 0.75f, 0.1);
             this->addChildAtPosition(text, Anchor::Center);
             break;
@@ -285,8 +296,14 @@ CCMenuItemSpriteExtra* createCategoryBtn(std::string name, CCObject* target, Set
 }
 
 bool SettingsLayer::setup() {
+    this->setID("SettingsLayer"_spr);
+    this->m_bgSprite->setID("background");
+    this->m_buttonMenu->setID("button-menu");
+    this->m_mainLayer->setID("main-layer");
+    this->m_closeBtn->setID("close-button");
     m_noElasticity = true;
     auto bg = CCScale9Sprite::create("square02b_001.png");
+    bg->setID("tab-background");
     bg->setContentSize({
     	100.f, 245.f
     });
@@ -320,6 +337,7 @@ bool SettingsLayer::setup() {
             ->setAxisAlignment(AxisAlignment::Even)
             ->setAxisReverse(true)
     );
+    menu->setID("tab-menu");
     menu->setContentSize(bg->getContentSize());
     menu->setPosition(bg->getPosition());
     menu->setAnchorPoint({ 0.f, 0.f });
@@ -337,11 +355,13 @@ bool SettingsLayer::setup() {
     auto searchBtn = CCMenuItemSpriteExtra::create(
         searchBtnSpr, this, menu_selector(SettingsLayer::onSearchBtn)
     );
+    searchBtn->setID("search-button");
 
     auto searchBtnOffSpr = CCSprite::createWithSpriteFrameName("gj_findBtnOff_001.png");
     m_searchClearBtn = CCMenuItemSpriteExtra::create(
         searchBtnOffSpr, this, menu_selector(SettingsLayer::onClearSearch)
     );
+    m_searchClearBtn->setID("clear-search-button");
 
     m_searchClearBtn->setVisible(false);
 
@@ -356,6 +376,7 @@ bool SettingsLayer::setup() {
     searchMenu->addChild(searchBtn);
     searchMenu->addChild(m_searchClearBtn);
     searchMenu->updateLayout();
+    searchMenu->setID("search-menu");
     m_mainLayer->addChildAtPosition(searchMenu, Anchor::TopRight, {15, 0});
 
     return true;
@@ -552,8 +573,12 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
 
 void SettingsLayer::refreshList() {
     ListView* listView = ListView::create(m_listItems, 30.f, 365.f, 245.f);
+    listView->setID("list-view");
+    listView->m_tableView->setID("table-view");
+    listView->m_tableView->m_contentLayer->setID("content-layer");
 
     m_border = Border::create(listView, {0, 0, 0, 75}, {365.f, 245.f});
+    m_border->setID("list-border");
     if(CCScale9Sprite* borderSprite = typeinfo_cast<CCScale9Sprite*>(m_border->getChildByID("geode.loader/border_sprite"))) {
         float scaleFactor = 1.5f;
         borderSprite->setContentSize(CCSize{borderSprite->getContentSize().width, borderSprite->getContentSize().height + 1} / scaleFactor);
