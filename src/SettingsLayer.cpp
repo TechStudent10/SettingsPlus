@@ -539,11 +539,13 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
             SETTING("Hide Attempts in Practice", "0135")
             break;
         case Keybinds:
+            #ifndef GEODE_IS_IOS
             // I need to manually create (but not show) the original
             // MoreOptionsLayer in order to do this so that I don't
             // accidently cause incompats with Custom Keybinds
             auto mol = MoreOptionsLayer::create();
             mol->onKeybindings(btn);
+	    #endif
 
             // auto dummyNode = CCNode::create();
             // auto text = CCLabelBMFont::create("There's nothing here!", "goldFont.fnt");
