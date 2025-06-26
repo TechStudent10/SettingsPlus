@@ -467,7 +467,7 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
             SETTING("Flip Plat. Controls", "0113")
             SETTING("Decimal Percent", "0126")
             SETTING("Orb Labels", "0130")
-            SETTING("Hide Attempts", "0134")
+            SETTING("Hide Attempts", "0135")
             SETTING("Quick Keys", "0163")
             SETTING("Confirm Exit", "0167")
             SETTING("Hide Playtest Text", "0174")
@@ -536,7 +536,7 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
             SETTING("Quick Checkpoint Mode", "0068")
             SETTING("Hide Practice Button", "0071")
             SETTING("Practice Death Effect", "0100")
-            SETTING("Hide Attempts in Practice", "0135")
+            SETTING("Hide Attempts in Practice", "0134")
             break;
         case Keybinds:
             #ifndef GEODE_IS_IOS
