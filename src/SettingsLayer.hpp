@@ -5,6 +5,7 @@
 using namespace geode::prelude;
 
 enum SettingPage {
+    Favorites,
     Gameplay,
     Practice,
     Performance,
@@ -35,16 +36,19 @@ public:
 class SettingCell : public CCNode {
 protected:
     CCMenuItemToggler* m_toggler;
+    CCMenuItemToggler* m_heart;
 
     bool init(std::string name, std::string gv, SettingCellType type);
     void onCheckboxToggled(CCObject* sender);
     void onFMODDebug(CCObject*);
     void onSongSelect(CCObject*);
     void onInfo(CCObject*);
+    void onFavorite(CCObject*);
 public:
     std::string m_name;
     std::string m_gameVariable;
     SettingCellType m_type;
+    int m_favOrder;
     static SettingCell* create(std::string name, std::string gv, SettingCellType type = SettingCellType::Default);
 };
 
@@ -66,6 +70,7 @@ protected:
     void onClearSearch(CCObject*);
     void refreshList();
 public:
+    static int nextFavOrder;
     static SettingsLayer* create();
 };
 

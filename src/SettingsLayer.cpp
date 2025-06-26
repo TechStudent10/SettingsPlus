@@ -55,6 +55,8 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
     m_name = name;
     m_gameVariable = gv;
     m_type = type;
+    m_favOrder = m_type == SettingCellType::Default ? Mod::get()->getSavedValue<int>(fmt::format("fav_{}", gv.c_str()), -1) : 
+        Mod::get()->getSavedValue<int>(fmt::format("fav_{}", static_cast<int>(m_type)), -1);
 
     auto nameLabel = CCLabelBMFont::create(
         name.c_str(), "bigFont.fnt"
@@ -65,6 +67,15 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
     
     auto menu = CCMenu::create();
     menu->setID("button-menu");
+
+    m_heart = CCMenuItemToggler::create(
+                CCSprite::createWithSpriteFrameName("gj_heartOff_001.png"),
+                CCSprite::createWithSpriteFrameName("gj_heartOn_001.png"),
+                this,
+                menu_selector(SettingCell::onFavorite)
+            );
+    m_heart->setID("favorite-button");
+    m_heart->setScale(0.6f);
 
     // needed so that the switch statement isn't fussy about variables
     CCSprite* spr;
@@ -86,15 +97,21 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
                 GameManager::get()->getGameVariable(gv.c_str())
             );
 
+            m_heart->toggle(
+                Mod::get()->getSavedValue<int>(fmt::format("fav_{}", gv.c_str()), -1) >= 0
+            );
+            m_heart->setPositionX(-25.f);
+
             spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
             spr->setScale(0.65f);
             btn = CCMenuItemSpriteExtra::create(
                 spr, this, menu_selector(SettingCell::onInfo)
             );
             btn->setID("info-button");
-            btn->setPositionX(-35.f);
+            btn->setPositionX(-45.f);
             
             menu->addChild(btn);
+            menu->addChild(m_heart);
             menu->addChild(m_toggler);
             break;
         case FMODDebug:
@@ -105,6 +122,13 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
             );
             btn->setID("button");
             btn->setPositionX(-10.f);
+
+            m_heart->toggle(
+                Mod::get()->getSavedValue<int>(fmt::format("fav_{}", static_cast<int>(FMODDebug)), -1) >= 0
+            );
+            m_heart->setPositionX(-45.f);
+
+            menu->addChild(m_heart);
             menu->addChild(btn);
             break;
         case SongSelect:
@@ -114,6 +138,13 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
                 spr, this, menu_selector(SettingCell::onSongSelect)
             );
             btn->setID("button");
+
+            m_heart->toggle(
+                Mod::get()->getSavedValue<int>(fmt::format("fav_{}", static_cast<int>(SongSelect)), -1) >= 0
+            );
+            m_heart->setPositionX(-25.f);
+
+            menu->addChild(m_heart);
             menu->addChild(btn);
             break;
         case SongOffset:
@@ -134,6 +165,13 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
             });
             input->setPositionX(-25.f);
             input->setScale(0.75f);
+
+            m_heart->toggle(
+                Mod::get()->getSavedValue<int>(fmt::format("fav_{}", static_cast<int>(SongOffset)), -1) >= 0
+            );
+            m_heart->setPositionX(-75.f);
+
+            menu->addChild(m_heart);
             menu->addChild(input);
             break;
         case Separator:
@@ -179,87 +217,101 @@ void SettingCell::onCheckboxToggled(CCObject* sender) {
     log::debug("set gv_{} to {}", m_gameVariable, !m_toggler->isOn());
 }
 
-std::string descForGV(std::string gv) {
-    std::map<std::string, std::string> descriptions = {
-        {"0026", "Restarts level upon death automatically."},
-        {"0052", "Restarts in 0.5 s instead of 1.0 s upon death."},
-        {"0128", "Locks and hides cursor during gameplay."},
-        {"0010", "Flips which side controls which player during 2-player mode."},
-        {"0011", "Limits player 1 controls to one side even when dual mode is inactive."},
-        {"0028", "Disables mouse movement when using a controller thumbstick."},
-        {"0163", "Enables some quick temporary bindings until full customization later. Use 'R' for reset, 'CTRL + R' for full reset, and 'P' to toggle hitboxes in Practice mode."},
-        {"0024", "Shows cursor and pause button during gameplay."},
-        {"0135", "Hides the attempt counter when playing levels."},
-        {"0015", "Flips the location of the pause button."},
-        {"0129", "Disables extra indicators on portals."},
-        {"0130", "Enables extra indicators on orbs."},
-        {"0140", "Disables the scaling effect on all orbs."},
-        {"0141", "Disables the scaling effect on only trigger orbs."},
-        {"0172", "Disables shake effects."},
-        {"0014", "Disables the shake effect that happens upon death."},
-        {"0072", "Disables the effect that happens upon changing gravity."},
-        {"0060", "Sets player icon in mini mode to default."},
-        {"0061", "Toggles between main and secondary color for the teleport effect in spider mode."},
-        {"0062", "Toggles between main and secondary color for the fire effect from dash orbs."},
-        {"0096", "Toggles between main and secondary color for the trail in wave mode."},
-        {"0174", "Hides text in the top left when using start positions or ignore damage."},
-        {"0071", "Hides the checkpoint buttons shown in practice mode."},
-        {"0134", "Hides the attempt counter when playing levels in practice mode."},
-        {"0027", "Places checkpoints automatically in practice mode."},
-        {"0068", "Tries to place checkpoints more often in practice mode."},
-        {"0100", "Shows death effects in practice mode."},
-        {"0125", "Plays normal music in sync to editor levels in practice mode."},
-        {"0166", "Shows hitboxes while in practice mode."},
-        {"0171", "Disables the player's hitbox in practice mode (if hitboxes are shown)."},
-        {"0066", "Increases draw capacity for batch nodes at level start. Can improve performance on some levels, but may cause issues on low-end devices."},
-        {"0108", "Enables low detail mode on levels that support it automatically."},
-        {"0082", "Removes the alert shown when starting levels with a high object count."},
-        {"0136", "Removes glow and enter effects while in low detail mode. Levels without LDM show LDM Lite."},
-        {"0042", "Increases maximum locally saved levels from 10 to 100. This refers to level data, not statistics. Enabling this can make your save file considerably larger, so keeping the option off is recommended for quicker saving."},
-        {"0119", "Saves level statistics as usual, but levels need to be redownloaded every time you restart the game. Makes saving and loading faster."},
-        {"0127", "Saves gauntlet levels locally so they do not have to be redownloaded. Increases save time but helpful if you have poor connection."},
-        {"0155", "Disables anti-aliasing on shader effects."},
-        {"0033", "Saves custom songs in a different directory. May fix custom songs not working."},
-        {"0083", "Removes the alert shown when starting levels without the song downloaded."},
-        {"0018", "Stops automatic deletion of custom songs. This is done by default to save space."},
-        {"0142", "Lowers audio sampling rate from 44100 Hz to 24000 Hz. Requires restarting to take effect."},
-        {"0159", "Increases the audio buffer size, which may fix certain issues. Do not enable if audio is working fine. Causes a slight more audio delay. Requires restarting to take effect."},
-        {"0094", "Shows more comments per page. Why not?"},
-        {"0090", "Loads comments automatically."},
-        {"0073", "Makes completed levels filter based only on percentage from update 2.1. Useful to rebeat levels for Mana Orbs."},
-        {"0093", "Increases created and saved levels per page from 10 to 20."},
-        {"0084", "Places new levels last in the saved levels list. Useful if you want to manually move levels to the top."},
-        {"0126", "Shows decimals in level progress."},
-        {"0099", "Toggles viewing the leaderboard percentage you have on levels. To upload your level progress to the level leaderboard, you need to replay levels completed before 2.11."},
-        {"0095", "Does not do anything... Well, nothing useful."},
-        {"0167", "Adds an extra confirmation window when exiting levels."},
-        {"0168", "Makes transitions between menu pages faster."},
-        {"0040", "Toggles the percent label in game"},
-        {"0074", "Toggles the restart button on the pause menu"},
-        {"0109", "Toggles the extra info/debug label in game"},
-        {"0113", "Flips the platformer controls"},
-        {"0153", "Whether the player should explode on death"},
-        {"0019", "Loads audio into memory. Used to be available in 2.1, not available in base 2.2"},
-        {"0022", "Whether the game should use higher audio quality"},
-        {"0075", "(Parental Controls) Disables comments <cy>(known to be buggy)</c>"},
-        {"0076", "(Parental Controls) Disables account posts"},
-        {"0077", "(Parental Controls) Removes the search button in the creator menu"},
-        {"0023", "Toggles smooth fix"},
-        {"0065", "Toggles move optimization"},
-        {"0101", "Forces smooth fix to be on"},
-        {"0102", "Toggles smooth fix in the editor"},
-        {"0056", "Disables the high object alert"},
-        {"0081", "Disables the shake effect in levels"},
-        {"0067", "Increases the accuracy of start positions"},
-    };
+int SettingsLayer::nextFavOrder = 0;
 
-    return descriptions.at(gv);
+void SettingCell::onFavorite(CCObject* sender) {
+    if(m_type == SettingCellType::Default) {
+        log::debug("set fav_{} to {}", m_gameVariable, !m_heart->isOn() ? SettingsLayer::nextFavOrder : -1);
+        Mod::get()->setSavedValue<int>(fmt::format("fav_{}", m_gameVariable.c_str()), !m_heart->isOn() ? SettingsLayer::nextFavOrder++ : -1);
+    }
+    else {
+        log::debug("set fav_{} to {}", static_cast<int>(m_type), !m_heart->isOn() ? SettingsLayer::nextFavOrder : -1);
+        Mod::get()->setSavedValue<int>(fmt::format("fav_{}", static_cast<int>(m_type)), !m_heart->isOn() ? SettingsLayer::nextFavOrder++ : -1);
+    }
 }
 
+
+std::map<std::string, std::tuple<std::string, std::string>> settings = {
+    {"Auto Retry", {"0026", "Restarts level upon death automatically."}},
+    {"Fast Reset", {"0052", "Restarts in 0.5 s instead of 1.0 s upon death."}},
+    {"Lock Cursor In-Game", {"0128", "Locks and hides cursor during gameplay."}},
+    {"Flip 2P controls", {"0010", "Flips which side controls which player during 2-player mode."}},
+    {"Always Limit Controls", {"0011", "Limits player 1 controls to one side even when dual mode is inactive."}},
+    {"Disable Thumbstick", {"0028", "Disables mouse movement when using a controller thumbstick."}},
+    {"Quick Keys", {"0163", "Enables some quick temporary bindings until full customization later. Use 'R' for reset, 'CTRL + R' for full reset, and 'P' to toggle hitboxes in Practice mode."}},
+    {"Show Cursor In-Game", {"0024", "Shows cursor and pause button during gameplay."}},
+    {"Hide Attempts", {"0135", "Hides the attempt counter when playing levels."}},
+    {"Flip Pause Button", {"0015", "Flips the location of the pause button."}},
+    {"Disable Portal Labels", {"0129", "Disables extra indicators on portals."}},
+    {"Orb Labels", {"0130", "Enables extra indicators on orbs."}},
+    {"Disable Orb Scale", {"0140", "Disables the scaling effect on all orbs."}},
+    {"Disable Trigger Orb Scale", {"0141", "Disables the scaling effect on only trigger orbs."}},
+    {"Disable Shake", {"0172", "Disables shake effects."}}, // Not placed
+    {"Disable Explosion Shake", {"0014", "Disables the shake effect that happens upon death."}},
+    {"Disable Gravity Effect", {"0072", "Disables the effect that happens upon changing gravity."}},
+    {"Default Mini Icon", {"0060", "Sets player icon in mini mode to default."}},
+    {"Switch Spider Teleport Color", {"0061", "Toggles between main and secondary color for the teleport effect in spider mode."}},
+    {"Switch Dash Fire Color", {"0062", "Toggles between main and secondary color for the fire effect from dash orbs."}},
+    {"Switch Wave Trail Color", {"0096", "Toggles between main and secondary color for the trail in wave mode."}},
+    {"Hide Playtest Text", {"0174", "Hides text in the top left when using start positions or ignore damage."}},
+    {"Hide Practice Button", {"0071", "Hides the checkpoint buttons shown in practice mode."}},
+    {"Hide Attempts in Practice", {"0134", "Hides the attempt counter when playing levels in practice mode."}},
+    {"Auto Checkpoints", {"0027", "Places checkpoints automatically in practice mode."}},
+    {"Quick Checkpoint Mode", {"0068", "Tries to place checkpoints more often in practice mode."}},
+    {"Practice Death Effect", {"0100", "Shows death effects in practice mode."}},
+    {"Normal Music in Editor", {"0125", "Plays normal music in sync to editor levels in practice mode."}},
+    {"Show Hitboxes", {"0166", "Shows hitboxes while in practice mode."}}, 
+    {"Disable Player Hitbox", {"0171", "Disables the player's hitbox in practice mode (if hitboxes are shown)."}}, 
+    {"High Capacity Mode", {"0066", "Increases draw capacity for batch nodes at level start. Can improve performance on some levels, but may cause issues on low-end devices."}},
+    {"Auto LDM", {"0108", "Enables low detail mode on levels that support it automatically."}},
+    {"Disable High Object Alert", {"0082", "Removes the alert shown when starting levels with a high object count."}},
+    {"Extra LDM", {"0136", "Removes glow and enter effects while in low detail mode. Levels without LDM show LDM Lite."}},
+    {"Increase Max Levels", {"0042", "Increases maximum locally saved levels from 10 to 100. This refers to level data, not statistics. Enabling this can make your save file considerably larger, so keeping the option off is recommended for quicker saving."}},
+    {"Disable Level Saving", {"0119", "Saves level statistics as usual, but levels need to be redownloaded every time you restart the game. Makes saving and loading faster."}},
+    {"Save Gauntlet Levels", {"0127", "Saves gauntlet levels locally so they do not have to be redownloaded. Increases save time but helpful if you have poor connection."}},
+    {"Disable Shader Anti-Aliasing", {"0155", "Disables anti-aliasing on shader effects."}},
+    {"Change Song Path", {"0033", "Saves custom songs in a different directory. May fix custom songs not working."}},
+    {"Disable Song Alert", {"0083", "Removes the alert shown when starting levels without the song downloaded."}},
+    {"No Song Limit", {"0018", "Stops automatic deletion of custom songs. This is done by default to save space."}},
+    {"Reduce Audio Quality", {"0142", "Lowers audio sampling rate from 44100 Hz to 24000 Hz. Requires restarting to take effect."}},
+    {"Audio Fix 01", {"0159", "Increases the audio buffer size, which may fix certain issues. Do not enable if audio is working fine. Causes a slight more audio delay. Requires restarting to take effect."}},
+    {"More Comments Mode", {"0094", "Shows more comments per page. Why not?"}},
+    {"Autoload Comments", {"0090", "Loads comments automatically."}},
+    {"New Completed Filter", {"0073", "Makes completed levels filter based only on percentage from update 2.1. Useful to rebeat levels for Mana Orbs."}},
+    {"Increase Local Levels Per Page", {"0093", "Increases created and saved levels per page from 10 to 20."}},
+    {"Manual Level Order", {"0084", "Places new levels last in the saved levels list. Useful if you want to manually move levels to the top."}},
+    {"Decimal Percent", {"0126", "Shows decimals in level progress."}},
+    {"Show Leaderboard Percent", {"0099", "Toggles viewing the leaderboard percentage you have on levels. To upload your level progress to the level leaderboard, you need to replay levels completed before 2.11."}},
+    {"Do Not...", {"0095", "Does not do anything... Well, nothing useful."}},
+    {"Confirm Exit", {"0167", "Adds an extra confirmation window when exiting levels."}},
+    {"Fast Menu", {"0168", "Makes transitions between menu pages faster."}},
+    {"Show Percent", {"0040", "Toggles the percent label in game"}},
+    {"Restart Button", {"0074", "Toggles the restart button on the pause menu"}},
+    {"Extra Info", {"0109", "Toggles the extra info/debug label in game"}},
+    {"Flip Plat. Controls", {"0113", "Flips the platformer controls"}},
+    {"Explode Player on Death", {"0153", "Whether the player should explode on death"}},
+    {"Load Songs into Memory", {"0019", "Loads audio into memory. Used to be available in 2.1, not available in base 2.2"}},
+    {"Higher Audio Quality", {"0022", "Whether the game should use higher audio quality"}},
+    {"Disable Comments", {"0075", "(Parental Controls) Disables comments <cy>(known to be buggy)</c>"}},
+    {"Disable Account Comments", {"0076", "(Parental Controls) Disables account posts"}},
+    {"Featured Levels Only", {"0077", "(Parental Controls) Removes the search button in the creator menu"}},
+    {"Smooth Fix", {"0023", "Toggles smooth fix"}},
+    {"Move Optimization", {"0065", "Toggles move optimization"}},
+    {"Force Smooth Fix", {"0101", "Forces smooth fix to be on"}},
+    {"Smooth Fix in the Editor", {"0102", "Toggles smooth fix in the editor"}},
+    {"Disable Object Alert", {"0056", "Disables the high object alert"}},
+    {"Disable Shake Effect", {"0081", "Disables the shake effect in levels"}},
+    {"High Start Position Accuracy", {"0067", "Increases the accuracy of start positions"}},
+    {"FMOD Debug", {std::to_string(SettingCellType::FMODDebug), ""}},
+    {"Local Songs", {std::to_string(SettingCellType::SongSelect), ""}},
+    {"Song Offset (MS)", {std::to_string(SettingCellType::SongOffset), ""}}
+};
+
+ 
 void SettingCell::onInfo(CCObject* sender) {
     FLAlertLayer::create(
         m_name.c_str(),
-        descForGV(m_gameVariable).c_str(),
+        std::get<1>(settings.at(m_name)).c_str(),
         "OK"
     )->show();
 }
@@ -325,6 +377,7 @@ bool SettingsLayer::setup() {
     //     sprite, this, nullptr
     // );
 
+    CATEGORY_BTN("Favorites", SettingPage::Favorites)
     CATEGORY_BTN("Gameplay", SettingPage::Gameplay)
     CATEGORY_BTN("Practice", SettingPage::Practice)
     CATEGORY_BTN("Performance", SettingPage::Performance)
@@ -378,6 +431,16 @@ bool SettingsLayer::setup() {
     searchMenu->updateLayout();
     searchMenu->setID("search-menu");
     m_mainLayer->addChildAtPosition(searchMenu, Anchor::TopRight, {15, 0});
+
+    CCObject* cell;
+    
+    for(const auto& [name, info] : settings) {
+        // if (std::get<0>(info) == std::to_string(SettingCellType::Default))
+            SettingsLayer::nextFavOrder = std::max(SettingsLayer::nextFavOrder, Mod::get()->getSavedValue<int>(fmt::format("fav_{}", std::get<0>(info)), -1));
+        // else
+        //     SettingsLayer::nextFavOrder = std::max(SettingsLayer::nextFavOrder, Mod::get()->getSavedValue<int>(fmt::format("fav_{}", static_cast<int>(settingCell->m_type)), -1));
+    }
+    SettingsLayer::nextFavOrder++;
 
     return true;
 }
@@ -443,8 +506,8 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
     if(m_searchClearBtn){
         m_searchClearBtn->setVisible(false);
     }
-    #define SETTING(name, gv) m_listItems->addObject( \
-        SettingCell::create(name, gv) \
+    #define SETTING(name) m_listItems->addObject( \
+        SettingCell::create(name, std::get<0>(settings.at(name))) \
     );
     #define SETTING_WITH_TYPE(name, type) m_listItems->addObject( \
         SettingCell::create(name, "", type) \
@@ -454,89 +517,127 @@ void SettingsLayer::switchPage(SettingPage page, bool isFirstRun, CCMenuItemSpri
     );
 
     switch (page) {
+        case Favorites: {
+            // Add cell for each favorited setting
+            for(const auto& [name, info] : settings){
+                if(Mod::get()->getSavedValue<int>(fmt::format("fav_{}", std::get<0>(info)), -1) >= 0) {
+                    if(std::get<1>(info) == "")
+                        SETTING_WITH_TYPE(name, static_cast<SettingCellType>(stoi(std::get<0>(info))))
+                    else
+                        SETTING(name)
+                }
+            }
+
+            // Sort the settings from least to most recently favorited
+            std::vector<SettingCell*> sorted;
+            CCObject* cell;
+            CCARRAY_FOREACH(m_listItems, cell) {
+                sorted.push_back(static_cast<SettingCell*>(cell));
+            }
+
+            std::sort(sorted.begin(), sorted.end(), [](SettingCell* a, SettingCell* b) {
+                return a->m_favOrder < b->m_favOrder;
+            });
+
+            m_listItems->removeAllObjects();
+            for (auto& cell : sorted) {
+                log::debug("Adding favorite setting: {} {}", cell->m_name, cell->m_favOrder);
+                m_listItems->addObject(cell);
+            }
+
+            if( m_listItems->count() == 0) {
+                SEPARATOR("View your favorite settings here!")
+            }
+                
+            break;
+        }
         case Gameplay:
-            SETTING("Auto Retry", "0026")
-            SETTING("Flip 2P controls", "0010")
-            SETTING("Always Limit Controls", "0011")
-            SETTING("Show Cursor In-Game", "0024")
-            SETTING("Disable Thumbstick", "0028")
-            SETTING("Show Percent", "0040")
-            SETTING("Fast Reset", "0052")
-            SETTING("Restart Button", "0074")
-            SETTING("Extra Info", "0109")
-            SETTING("Flip Plat. Controls", "0113")
-            SETTING("Decimal Percent", "0126")
-            SETTING("Orb Labels", "0130")
-            SETTING("Hide Attempts", "0134")
-            SETTING("Quick Keys", "0163")
-            SETTING("Confirm Exit", "0167")
-            SETTING("Hide Playtest Text", "0174")
-            SETTING("Flip Pause Button", "0015")
+            SETTING("Auto Retry")
+            SETTING("Flip 2P controls")
+            SETTING("Always Limit Controls")
+            SETTING("Show Cursor In-Game")
+            SETTING("Disable Thumbstick")
+            SETTING("Show Percent")
+            SETTING("Fast Reset")
+            SETTING("Restart Button")
+            SETTING("Extra Info")
+            SETTING("Flip Plat. Controls")
+            SETTING("Decimal Percent")
+            SETTING("Disable Portal Labels")
+            SETTING("Orb Labels")
+            SETTING("Hide Attempts")
+            SETTING("Quick Keys")
+            SETTING("Confirm Exit")
+            SETTING("Hide Playtest Text")
+            SETTING("Flip Pause Button")
             SEPARATOR("Icon Options")
-            SETTING("Explode Player on Death", "0153")
-            SETTING("Default Mini Icon", "0060")
-            SETTING("Switch Spider Teleport Color", "0061")
-            SETTING("Switch Dash Fire Color", "0062")
-            SETTING("Switch Wave Trail Color", "0096")
+            SETTING("Explode Player on Death")
+            SETTING("Default Mini Icon")
+            SETTING("Switch Spider Teleport Color")
+            SETTING("Switch Dash Fire Color")
+            SETTING("Switch Wave Trail Color")
             break;
         case Audio:
-            SETTING("Load Songs into Memory", "0019")
-            SETTING("Higher Audio Quality", "0022")
-            SETTING("Change Song Path", "0033")
-            SETTING("No Song Limit", "0018")
-            SETTING("Normal Music in Editor", "0125")
-            SETTING("Reduce Audio Quality", "0142")
-            SETTING("Audio Fix 01", "0159")
+            SETTING("Load Songs into Memory")
+            SETTING("Higher Audio Quality")
+            SETTING("Change Song Path")
+            SETTING("No Song Limit")
+            SETTING("Normal Music in Editor")
+            SETTING("Reduce Audio Quality")
+            SETTING("Audio Fix 01")
             SETTING_WITH_TYPE("FMOD Debug", SettingCellType::FMODDebug)
             SETTING_WITH_TYPE("Local Songs", SettingCellType::SongSelect)
             SETTING_WITH_TYPE("Song Offset (MS)", SettingCellType::SongOffset)
             break;
         case Misc:
-            SETTING("Do Not...", "0095")
-            SETTING("Disable Gravity Effect", "0072")
-            SETTING("New Completed Filter", "0073")
-            SETTING("Disable Song Alert", "0083")
-            SETTING("Manual Level Order", "0084")
-            SETTING("Show Leaderboard Percent", "0099")
-            SETTING("Fast Menu", "0168")
+            SETTING("Do Not...")
+            SETTING("Disable Gravity Effect")
+            SETTING("New Completed Filter")
+            SETTING("Disable Song Alert")
+            SETTING("Manual Level Order")
+            SETTING("Show Leaderboard Percent")
+            SETTING("Fast Menu")
             SEPARATOR("Comments")
-            SETTING("Autoload Comments", "0090")
-            SETTING("More Comments Mode", "0094")
+            SETTING("Autoload Comments")
+            SETTING("More Comments Mode")
             SEPARATOR("Parent Controls")
-            SETTING("Disable Comments", "0075")
-            SETTING("Disable Account Comments", "0076")
-            SETTING("Featured Levels Only", "0077")
+            SETTING("Disable Comments")
+            SETTING("Disable Account Comments")
+            SETTING("Featured Levels Only")
             break;
         case Performance:
-            SETTING("Smooth Fix", "0023")
-            SETTING("Move Optimization", "0065")
-            SETTING("Force Smooth Fix", "0101")
-            SETTING("Smooth Fix in the Editor", "0102")
-            SETTING("Lock Cursor In-Game", "0128")
+            SETTING("Smooth Fix")
+            SETTING("Move Optimization")
+            SETTING("Force Smooth Fix")
+            SETTING("Smooth Fix in the Editor")
+            SETTING("Lock Cursor In-Game")
             SEPARATOR("LDM")
-            SETTING("Auto LDM", "0108")
-            SETTING("Extra LDM", "0136")
+            SETTING("Auto LDM")
+            SETTING("Extra LDM")
             SEPARATOR("Enhancements")
-            SETTING("Increase Max Levels", "0042")
-            SETTING("Disable Object Alert", "0056")
-            SETTING("Save Gauntlet Levels", "0127")
-            SETTING("Increase Local Levels Per Page", "0093")
-            SETTING("High Capacity Mode", "0066")
+            SETTING("Increase Max Levels")
+            SETTING("Disable Level Saving")
+            SETTING("Disable Object Alert")
+            SETTING("Save Gauntlet Levels")
+            SETTING("Increase Local Levels Per Page")
+            SETTING("High Capacity Mode")
             SEPARATOR("Disable Toggles")
-            SETTING("Disable Explosion Shake", "0014")
-            SETTING("Disable Orb Scale", "0140")
-            SETTING("Disable Shake Effect", "0081")
-            SETTING("Disable High Object Alert", "0082")
-            SETTING("Disable Shader Anti-Aliasing", "0155")
-            SETTING("Disable Trigger Orb Scale", "0141")
+            SETTING("Disable Explosion Shake")
+            SETTING("Disable Orb Scale")
+            SETTING("Disable Shake Effect")
+            SETTING("Disable High Object Alert")
+            SETTING("Disable Shader Anti-Aliasing")
+            SETTING("Disable Trigger Orb Scale")
             break;
         case Practice:
-            SETTING("Auto Checkpoints", "0027")
-            SETTING("High Start Position Accuracy", "0067")
-            SETTING("Quick Checkpoint Mode", "0068")
-            SETTING("Hide Practice Button", "0071")
-            SETTING("Practice Death Effect", "0100")
-            SETTING("Hide Attempts in Practice", "0135")
+            SETTING("Auto Checkpoints")
+            SETTING("High Start Position Accuracy")
+            SETTING("Quick Checkpoint Mode")
+            SETTING("Hide Practice Button")
+            SETTING("Practice Death Effect")
+            SETTING("Hide Attempts in Practice")
+            SETTING("Show Hitboxes")
+            SETTING("Disable Player Hitbox")
             break;
         case Keybinds:
             #ifndef GEODE_IS_IOS
