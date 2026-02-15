@@ -22,11 +22,11 @@ enum SettingCellType {
 };
 
 using SearchCB = std::function<void(std::string)>;
-class SearchPopup : public geode::Popup<SearchCB> {
+class SearchPopup : public geode::Popup {
 protected:
     TextInput* m_input;
     SearchCB m_callback;
-    bool setup(SearchCB) override;
+    bool init(SearchCB);
     void onSearch(CCObject*);
 public:
     static SearchPopup* create(SearchCB callback);
@@ -48,14 +48,14 @@ public:
     static SettingCell* create(std::string name, std::string gv, SettingCellType type = SettingCellType::Default);
 };
 
-class SettingsLayer : public geode::Popup<> {
+class SettingsLayer : public geode::Popup {
 protected:
     CCArray* m_listItems;
     Border* m_border;
     CCMenuItemSpriteExtra* m_currentBtn;
     CCMenuItemSpriteExtra* m_searchClearBtn;
 
-    bool setup() override;
+    bool init();
     void createSettingCheckbox(
         std::string name,
         std::string gv

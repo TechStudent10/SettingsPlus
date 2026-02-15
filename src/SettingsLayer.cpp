@@ -2,7 +2,7 @@
 
 SearchPopup* SearchPopup::create(SearchCB callback) {
     auto ret = new SearchPopup();
-    if (ret && ret->initAnchored(210.f, 130.f, callback)) {
+    if (ret && ret->init(callback)) {
         ret->autorelease();
         return ret;
     }
@@ -10,7 +10,9 @@ SearchPopup* SearchPopup::create(SearchCB callback) {
     return nullptr;
 }
 
-bool SearchPopup::setup(SearchCB callback) {
+bool SearchPopup::init(SearchCB callback) {
+    if (!Popup::init(210.f, 130.f)) return false;
+
     m_callback = callback;
 
     this->setTitle("Search");
@@ -255,7 +257,7 @@ void SettingCell::onInfo(CCObject* sender) {
 
 SettingsLayer* SettingsLayer::create() {
     auto ret = new SettingsLayer();
-    if (ret && ret->initAnchored(500.f, 280.f)) {
+    if (ret && ret->init()) {
         ret->autorelease();
         return ret;
     }
@@ -284,7 +286,9 @@ CCMenuItemSpriteExtra* createCategoryBtn(std::string name, CCObject* target, Set
     return btn;
 }
 
-bool SettingsLayer::setup() {
+bool SettingsLayer::init() {
+    if (!Popup::init(500.f, 280.f)) return false;
+
     m_noElasticity = true;
     auto bg = CCScale9Sprite::create("square02b_001.png");
     bg->setContentSize({
@@ -350,6 +354,7 @@ bool SettingsLayer::setup() {
         RowLayout::create()
             ->setAxisAlignment(AxisAlignment::Start)
             ->setAxisReverse(true)
+            ->ignoreInvisibleChildren(false)
     );
     searchMenu->setContentSize({70, 35});
     searchMenu->setAnchorPoint({1, 0.5});
