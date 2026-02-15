@@ -43,6 +43,7 @@ jobs:
           bindings-ref: main
           combine: true
           export-symbols: true
+          sdk: nightly
           target: ${{ matrix.config.target }}
 
   package:
