@@ -131,7 +131,7 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
             input->setCallback([this](std::string offset) {
                 auto res = geode::utils::numFromString<int>(offset).unwrapOr(0);
                 FMODAudioEngine::get()->m_musicOffset = res;
-                callCallbacks(m_gameVariable, (float)res);
+                // callCallbacks(m_gameVariable, (float)res);
             });
             input->setPositionX(-25.f);
             input->setScale(0.75f);
@@ -177,7 +177,7 @@ void SettingCell::onSongSelect(CCObject* sender) {
 
 void SettingCell::onCheckboxToggled(CCObject* sender) {
     GameManager::get()->setGameVariable(m_gameVariable.c_str(), !m_toggler->isOn());
-    callCallbacks(m_gameVariable, !m_toggler->isOn());
+    // callCallbacks(m_gameVariable, !m_toggler->isOn());
     // log::debug("set gv_{} to {}", m_gameVariable, !m_toggler->isOn());
 }
 
