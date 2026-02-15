@@ -22,5 +22,10 @@
 	],
 	"links": {
 		"source": "https://github.com/TechStudent10/SettingsPlus"
+	},
+	"api": {
+		"include": [
+			"include/*.hpp"
+		]
 	}
 }

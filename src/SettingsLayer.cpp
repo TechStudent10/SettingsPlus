@@ -1,4 +1,5 @@
 #include "./SettingsLayer.hpp"
+#include "API.hpp"
 
 SearchPopup* SearchPopup::create(SearchCB callback) {
     auto ret = new SearchPopup();
@@ -124,15 +125,13 @@ bool SettingCell::init(std::string name, std::string gv, SettingCellType type) {
             input->setMaxCharCount(4);
             input->setID("input");
 
-            if (gameManager->m_timeOffset != 0) {
-                input->setString(fmt::format("{}", gameManager->m_timeOffset));
+            if (FMODAudioEngine::get()->m_musicOffset != 0) {
+                input->setString(fmt::format("{}", FMODAudioEngine::get()->m_musicOffset));
             }
-            input->setCallback([this, gameManager](std::string offset) {
-                auto res = geode::utils::numFromString<int>(offset);
-                if(res.isErr()) {
-                    log::info("{}", res.unwrapErr());
-                }
-                gameManager->m_timeOffset = geode::utils::numFromString<int>(offset).unwrapOrDefault();
+            input->setCallback([this](std::string offset) {
+                auto res = geode::utils::numFromString<int>(offset).unwrapOr(0);
+                FMODAudioEngine::get()->m_musicOffset = res;
+                callCallbacks(m_gameVariable, (float)res);
             });
             input->setPositionX(-25.f);
             input->setScale(0.75f);
@@ -178,7 +177,8 @@ void SettingCell::onSongSelect(CCObject* sender) {
 
 void SettingCell::onCheckboxToggled(CCObject* sender) {
     GameManager::get()->setGameVariable(m_gameVariable.c_str(), !m_toggler->isOn());
-    log::debug("set gv_{} to {}", m_gameVariable, !m_toggler->isOn());
+    callCallbacks(m_gameVariable, !m_toggler->isOn());
+    // log::debug("set gv_{} to {}", m_gameVariable, !m_toggler->isOn());
 }
 
 std::string descForGV(std::string gv) {
@@ -383,6 +383,16 @@ bool SettingsLayer::init() {
     searchMenu->updateLayout();
     searchMenu->setID("search-menu");
     m_mainLayer->addChildAtPosition(searchMenu, Anchor::TopRight, {15, 0});
+
+    auto regularSettingsMenu = CCMenu::create();
+    auto regularSettingsBtn = CCMenuItemExt::createSpriteExtraWithFrameName(
+        "GJ_optionsBtn_001.png", .75f,
+        [](CCMenuItemSpriteExtra*) {
+            MoreOptionsLayer::create()->show();
+        }
+    );
+    regularSettingsMenu->addChild(regularSettingsBtn);
+    m_mainLayer->addChildAtPosition(regularSettingsMenu, Anchor::BottomRight);
 
     return true;
 }
